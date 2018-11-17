@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Lab_4_CG
@@ -52,18 +48,22 @@ namespace Lab_4_CG
             OrthogonalWindow();
             buttonStart.Visible = false;
         }
-        private bool insidePolygon(Point p)
+        private bool insidePolygon(Point p, byte side)
         {
-            if ((p.X < leftX) || (p.X > rightX) || (p.Y > bottomY) || (p.Y < topY)) return false;
-            else return true;
+            if (p.X < leftX && 0x8 == side) return false;
+            if (p.X > rightX && 0x4 == side) return false;
+            if (p.Y > bottomY && 0x2 == side) return false;
+            if (p.Y < topY && 0x1 == side) return false;
+            return true;
         }
-        private void Satherland_Hodgman()
+        private void Satherland_Hodgman(byte side)
         {
+            if (insidePolygon(ListInputPoints[0], side)) ListOutputPoints.Add(ListInputPoints[0]);
             for (int p = 0;p<ListInputPoints.Count-1;p++)
             {
-                if (insidePolygon(ListInputPoints[p]))
+                if (insidePolygon(ListInputPoints[p], side))
                 {
-                    if (insidePolygon(ListInputPoints[p+1]))
+                    if (insidePolygon(ListInputPoints[p+1], side))
                     {
                         ListOutputPoints.Add(ListInputPoints[p + 1]);
                     }
@@ -72,38 +72,27 @@ namespace Lab_4_CG
                         ListOutputPoints.Add(Satherland_Coen(ListInputPoints[p+1], ListInputPoints[p]));
                     }
                 }
-                else if (insidePolygon(ListInputPoints[p + 1]))
+                else if (insidePolygon(ListInputPoints[p + 1], side))
                 {
                     ListOutputPoints.Add(Satherland_Coen(ListInputPoints[p], ListInputPoints[p + 1]));
                     ListOutputPoints.Add(ListInputPoints[p + 1]);
                 }        
             }
-            if (insidePolygon(ListInputPoints.Last()))
+            if (insidePolygon(ListInputPoints.Last(), side))
             {
-                if (insidePolygon(ListInputPoints[0]))
-                {
-                    ListOutputPoints.Add(ListInputPoints[0]);
-                }
-                else
+                if (!insidePolygon(ListInputPoints[0], side))
                 {
                     ListOutputPoints.Add(Satherland_Coen(ListInputPoints[0], ListInputPoints.Last()));
+
                 }
+                
             }
-            else if (insidePolygon(ListInputPoints[0]))
+            else if (insidePolygon(ListInputPoints[0], side))
             {
                 ListOutputPoints.Add(Satherland_Coen(ListInputPoints.Last(), ListInputPoints[0]));
             }
 
-            Pen pen = new Pen(Color.Orange, 0.5f);
-            gr = Graphics.FromImage(background);
-            for (int p = 0; p < ListOutputPoints.Count; p++)
-            {
-                if (p != ListOutputPoints.Count - 1)
-                    gr.DrawLine(pen, ListOutputPoints[p], ListOutputPoints[p+1]);
-                else gr.DrawLine(pen, ListOutputPoints[p], ListOutputPoints[0]);
-            }
-            this.BackgroundImage = background;
-            this.Refresh();
+            
 
         }
         private Point Satherland_Coen(Point FirstPoint, Point SecondPoint)
@@ -134,9 +123,51 @@ namespace Lab_4_CG
         }
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            Satherland_Hodgman();
-            buttonStart.Visible = false;
+            byte[] b = new byte[4] { 0x8, 0x2, 0x4, 0x1};
+            foreach (byte side in b)
+            {
+                Satherland_Hodgman(side);
+                ListInputPoints.Clear();
+                ListInputPoints.InsertRange(0, ListOutputPoints);
+                if (side!=0x1)
+                ListOutputPoints.Clear();
+            } 
+            //Satherland_Hodgman(0x8);
+            //ListInputPoints.Clear();
+            //ListInputPoints.InsertRange(0, ListOutputPoints);
+            //ListOutputPoints.Clear();
+            
+            
+            //Satherland_Hodgman(0x2);
+            //ListInputPoints.Clear();
+            //ListInputPoints.InsertRange(0, ListOutputPoints);
+            //ListOutputPoints.Clear();
+           
+            //Satherland_Hodgman(0x4);
+            //ListInputPoints.Clear();
+            //ListInputPoints.InsertRange(0, ListOutputPoints);
+            //ListOutputPoints.Clear();
+            
 
+            //Satherland_Hodgman(0x1);
+            Clear();
+            Draw(Color.Yellow);
+            buttonStart.Visible = false;
+            ListOutputPoints.Clear();
+
+        }
+        private void Draw(Color c)
+        {
+            Pen pen = new Pen(c, 0.5f);
+            gr = Graphics.FromImage(background);
+            for (int p = 0; p < ListOutputPoints.Count; p++)
+            {
+                if (p != ListOutputPoints.Count - 1)
+                    gr.DrawLine(pen, ListOutputPoints[p], ListOutputPoints[p + 1]);
+                else gr.DrawLine(pen, ListOutputPoints[p], ListOutputPoints[0]);
+            }
+            this.BackgroundImage = background;
+            this.Refresh();
         }
         private bool PolygonIsValid(Point p0, Point p1)
         {
@@ -200,6 +231,7 @@ namespace Lab_4_CG
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
         {
+            if (counter < 0) { Clear(); }
             counter++;
             ListInputPoints.Add(new Point(e.X, e.Y));
             if (counter >= 1)
@@ -218,14 +250,7 @@ namespace Lab_4_CG
                 }
             }
         }
-        private void Draw(Point f, Point s, Color c)
-        {
-            Pen pen = new Pen(c, 0.5f);
-            gr = Graphics.FromImage(background);
-            gr.DrawLine(pen, f, s);
-            this.BackgroundImage = background;
-            this.Refresh();
-        }
+        
 
         private void EndButton_Click(object sender, EventArgs e)
         {
@@ -241,8 +266,9 @@ namespace Lab_4_CG
                 {
                     this.BackgroundImage = background;
                     this.Refresh();
+                    buttonStart.Visible = true;
                 }
-                buttonStart.Visible = true;
+                //buttonStart.Visible = true;
                 counter = -1;
             }
             else MessageBox.Show("Добавьте хотя бы одну точку");
