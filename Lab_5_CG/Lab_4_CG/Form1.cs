@@ -129,27 +129,12 @@ namespace Lab_4_CG
                 Satherland_Hodgman(side);
                 ListInputPoints.Clear();
                 ListInputPoints.InsertRange(0, ListOutputPoints);
+                
                 if (side!=0x1)
                 ListOutputPoints.Clear();
+                
             } 
-            //Satherland_Hodgman(0x8);
-            //ListInputPoints.Clear();
-            //ListInputPoints.InsertRange(0, ListOutputPoints);
-            //ListOutputPoints.Clear();
             
-            
-            //Satherland_Hodgman(0x2);
-            //ListInputPoints.Clear();
-            //ListInputPoints.InsertRange(0, ListOutputPoints);
-            //ListOutputPoints.Clear();
-           
-            //Satherland_Hodgman(0x4);
-            //ListInputPoints.Clear();
-            //ListInputPoints.InsertRange(0, ListOutputPoints);
-            //ListOutputPoints.Clear();
-            
-
-            //Satherland_Hodgman(0x1);
             Clear();
             Draw(Color.Yellow);
             buttonStart.Visible = false;
@@ -169,6 +154,12 @@ namespace Lab_4_CG
             this.BackgroundImage = background;
             this.Refresh();
         }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
         private bool PolygonIsValid(Point p0, Point p1)
         {
             //Изменения координат
